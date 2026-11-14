@@ -1,0 +1,258 @@
+@import "tailwindcss";
+@import "@material-symbols/font-400";
+
+@theme {
+  --color-canvas: #1e1f22;
+  --color-surface: #2b2d31;
+  --color-surface-subtle: #202225;
+  --color-surface-hover: #35373c;
+  --color-surface-active: #404249;
+  
+  --color-content: #d9dadc;
+  --color-content-heading: #ffffff;
+  --color-content-muted: #949ba4;
+  
+  --color-accent: #ffc93c;
+  --color-accent-hover: #ffb914;
+  --color-accent-subtle: rgba(255, 201, 60, 0.12);
+  --color-accent-border: rgba(255, 201, 60, 0.32);
+  
+  --color-border-subtle: rgba(217, 218, 220, 0.12);
+  --color-border-hover: rgba(217, 218, 220, 0.24);
+  
+  --color-status-success: #10b981;
+  --color-status-success-subtle: rgba(16, 185, 129, 0.12);
+  --color-status-success-border: rgba(16, 185, 129, 0.3);
+  
+  --color-status-error: #f43f5e;
+  --color-status-error-subtle: rgba(244, 63, 94, 0.12);
+  --color-status-error-border: rgba(244, 63, 94, 0.3);
+
+  --color-status-info: #38bdf8;
+  --color-status-info-subtle: rgba(56, 189, 248, 0.12);
+  --color-status-info-border: rgba(56, 189, 248, 0.3);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border-subtle);
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-content);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-canvas);
+  }
+
+  /* Custom dark scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-canvas);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface);
+    border-radius: 9999px;
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+/* Material Symbols Local Icon Configuration */
+.material-symbols-outlined,
+.material-symbols-rounded {
+  font-family: "Material Symbols Outlined";
+  font-weight: 400;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Reusable UI Components Styles (Standard CSS, Zero Arbitrary Values) */
+.card-base {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1rem;
+}
+
+.card-interactive {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1rem;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-interactive:hover {
+  border-color: var(--color-accent-border);
+}
+
+.icon-box {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.input-base {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-content-heading);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-base::placeholder {
+  color: var(--color-content-muted);
+}
+
+.input-base:focus {
+  border-color: var(--color-accent);
+}
+
+.input-base:disabled {
+  background-color: var(--color-canvas);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary-custom {
+  background-color: var(--color-accent);
+  color: var(--color-canvas);
+  border: 1px solid transparent;
+  font-weight: 700;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.btn-primary-custom:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary-custom {
+  background-color: var(--color-surface);
+  color: var(--color-content);
+  border: 1px solid var(--color-border-subtle);
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-secondary-custom:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-content-heading);
+  border-color: var(--color-border-hover);
+}
+
+.btn-outline-custom {
+  background-color: transparent;
+  color: var(--color-content);
+  border: 1px solid var(--color-border-subtle);
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-outline-custom:hover {
+  background-color: var(--color-surface);
+  color: var(--color-content-heading);
+  border-color: var(--color-border-hover);
+}
+
+.btn-danger-custom {
+  background-color: var(--color-status-error-subtle);
+  color: var(--color-status-error);
+  border: 1px solid var(--color-status-error-border);
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.btn-danger-custom:hover {
+  background-color: var(--color-status-error);
+  color: var(--color-content-heading);
+}
+
+.badge-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border: 1px solid;
+}
+
+.badge-default {
+  background-color: var(--color-surface-subtle);
+  color: var(--color-content);
+  border-color: var(--color-border-subtle);
+  font-weight: 500;
+}
+
+.badge-accent {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-color: var(--color-accent-border);
+  font-weight: 700;
+}
+
+.badge-success {
+  background-color: var(--color-status-success-subtle);
+  color: var(--color-status-success);
+  border-color: var(--color-status-success-border);
+  font-weight: 600;
+}
+
+.badge-error {
+  background-color: var(--color-status-error-subtle);
+  color: var(--color-status-error);
+  border-color: var(--color-status-error-border);
+  font-weight: 600;
+}
+
+.badge-info {
+  background-color: var(--color-status-info-subtle);
+  color: var(--color-status-info);
+  border-color: var(--color-status-info-border);
+  font-weight: 600;
+}

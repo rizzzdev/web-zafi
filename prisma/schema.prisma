@@ -1,0 +1,148 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  output          = "../src/lib/db/generated"
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum ModuleCategory {
+  INPUT
+  PROCESS
+  OUTPUT
+  STORAGE_SOFTWARE
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String
+  passwordHash String    @map("password_hash")
+  fullName     String    @map("full_name")
+  role         UserRole  @default(ADMIN)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdBy    String?   @map("created_by")
+  updatedBy    String?   @map("updated_by")
+  deletedBy    String?   @map("deleted_by")
+
+  // Note: Partial Unique Index executed via SQL migration in Stage 3:
+  // CREATE UNIQUE INDEX users_email_active_idx ON users (email) WHERE deleted_at IS NULL;
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model LearningModule {
+  id                String         @id @default(uuid())
+  code              String
+  title             String
+  slug              String
+  category          ModuleCategory @default(INPUT)
+  videoUrl          String         @map("video_url")
+  durationInMinutes Int            @default(5) @map("duration_in_minutes")
+  summaryContent    String         @map("summary_content") @db.Text
+  orderIndex        Int            @default(1) @map("order_index")
+  isPublished       Boolean        @default(true) @map("is_published")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamptz(3)
+  createdBy         String?        @map("created_by")
+  updatedBy         String?        @map("updated_by")
+  deletedBy         String?        @map("deleted_by")
+
+  // Partial Unique Index:
+  // CREATE UNIQUE INDEX learning_modules_code_active_idx ON learning_modules (code) WHERE deleted_at IS NULL;
+  // CREATE UNIQUE INDEX learning_modules_slug_active_idx ON learning_modules (slug) WHERE deleted_at IS NULL;
+  @@index([deletedAt])
+  @@index([orderIndex])
+  @@map("learning_modules")
+}
+
+model QuizQuestion {
+  id           String       @id @default(uuid())
+  questionText String       @map("question_text") @db.Text
+  explanation  String?      @db.Text
+  orderIndex   Int          @default(1) @map("order_index")
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
+  createdBy    String?      @map("created_by")
+  updatedBy    String?      @map("updated_by")
+  deletedBy    String?      @map("deleted_by")
+
+  options      QuizOption[]
+
+  @@index([deletedAt])
+  @@index([orderIndex])
+  @@map("quiz_questions")
+}
+
+model QuizOption {
+  id         String       @id @default(uuid())
+  questionId String       @map("question_id")
+  optionText String       @map("option_text")
+  isCorrect  Boolean      @default(false) @map("is_correct")
+  orderIndex Int          @default(1) @map("order_index")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(3)
+  createdBy  String?      @map("created_by")
+  updatedBy  String?      @map("updated_by")
+  deletedBy  String?      @map("deleted_by")
+
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([deletedAt])
+  @@map("quiz_options")
+}
+
+model QuizSubmission {
+  id                String    @id @default(uuid())
+  studentName       String    @map("student_name")
+  studentIdentifier String    @map("student_identifier") // NIM atau Nomor Mahasiswa
+  classBatch        String?   @map("class_batch")        // Kelas/Angkatan
+  score             Int       @default(0)
+  totalQuestions    Int       @default(0) @map("total_questions")
+  correctAnswers    Int       @default(0) @map("correct_answers")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdBy         String?   @map("created_by")
+  updatedBy         String?   @map("updated_by")
+  deletedBy         String?   @map("deleted_by")
+
+  @@index([studentIdentifier])
+  @@index([deletedAt])
+  @@map("quiz_submissions")
+}
+
+model StudentFeedback {
+  id                String    @id @default(uuid())
+  studentName       String    @map("student_name")
+  studentIdentifier String    @map("student_identifier") // NIM
+  classBatch        String?   @map("class_batch")        // Kelas/Angkatan
+  ratingDesign      Int       @map("rating_design")      // Skala 1-5 Aspek Visual/Desain
+  ratingContent     Int       @map("rating_content")     // Skala 1-5 Aspek Kejelasan Materi
+  ratingUsability   Int       @map("rating_usability")   // Skala 1-5 Aspek Kemudahan Penggunaan
+  averageScore      Decimal   @map("average_score") @db.Decimal(3, 2)
+  comments          String    @db.Text                   // Kritik, saran, testimoni kualitatif
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdBy         String?   @map("created_by")
+  updatedBy         String?   @map("updated_by")
+  deletedBy         String?   @map("deleted_by")
+
+  @@index([studentIdentifier])
+  @@index([deletedAt])
+  @@map("student_feedbacks")
+}
