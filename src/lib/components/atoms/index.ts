@@ -15,5 +15,5 @@ export { default as IconSymbol } from './IconSymbol.svelte';
 export { default as SelectInput } from './SelectInput.svelte';
 export { default as ShimmerSkeleton } from './ShimmerSkeleton.svelte';
 export { default as StatusBadge } from './StatusBadge.svelte';
-export { default as TextArea } from './TextArea.svelte';
+export { default as TextArea } from './Textarea.svelte';
 export { default as TextInput } from './TextInput.svelte';
