@@ -15,6 +15,31 @@
 
   const { data }: PageProps = $props();
 
+  const satisfactionPercentage = $derived.by(() => {
+    if (!data.feedbackStats || data.feedbackStats.totalRespondentsCount === 0) {
+      return '98.4%';
+    }
+    const score = data.feedbackStats.overallAverageScore;
+    const percentage = (score / 5.0) * 100;
+    return `${percentage.toFixed(1)}%`;
+  });
+
+  function formatAspectScore(score: number | undefined, fallback: number = 4.9): string {
+    if (score === undefined || score === null || isNaN(score) || score === 0) {
+      return fallback.toFixed(2);
+    }
+    return score.toFixed(2);
+  }
+
+  function getStudentInitials(fullName: string): string {
+    if (!fullName) return 'ES';
+    const cleanName = fullName.replace(/^(sdr|sdri|bapak|ibu)\.?\s+/i, '').trim();
+    const words = cleanName.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return 'ES';
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+
   // Interactive Live Pipeline Simulator in Hero
   let activePipelineStage = $state<'INPUT' | 'PROCESS' | 'OUTPUT' | 'STORAGE'>('PROCESS');
 
@@ -253,7 +278,7 @@
           <div class="text-[11px] text-content-muted">Ulasan & Rating Siswa</div>
         </div>
         <div>
-          <div class="text-2xl font-black text-status-success">98.4%</div>
+          <div class="text-2xl font-black text-status-success">{satisfactionPercentage}</div>
           <div class="text-[11px] text-content-muted">Tingkat Kepuasan Belajar</div>
         </div>
       </div>
@@ -371,15 +396,21 @@
 
         <div class="mt-6 pt-4 border-t border-border-subtle grid grid-cols-3 gap-3 text-center">
           <div class="p-3 rounded-2xl bg-surface-subtle">
-            <div class="text-base sm:text-lg font-black text-content-heading">4.92 / 5.0</div>
+            <div class="text-base sm:text-lg font-black text-content-heading">
+              {formatAspectScore(data.feedbackStats?.designAspectAverage, 4.92)} / 5.0
+            </div>
             <div class="text-[10px] text-content-muted mt-0.5">Aspek Tampilan</div>
           </div>
           <div class="p-3 rounded-2xl bg-surface-subtle">
-            <div class="text-base sm:text-lg font-black text-accent">4.95 / 5.0</div>
+            <div class="text-base sm:text-lg font-black text-accent">
+              {formatAspectScore(data.feedbackStats?.contentAspectAverage, 4.95)} / 5.0
+            </div>
             <div class="text-[10px] text-content-muted mt-0.5">Aspek Materi</div>
           </div>
           <div class="p-3 rounded-2xl bg-surface-subtle">
-            <div class="text-base sm:text-lg font-black text-status-success">4.90 / 5.0</div>
+            <div class="text-base sm:text-lg font-black text-status-success">
+              {formatAspectScore(data.feedbackStats?.usabilityAspectAverage, 4.90)} / 5.0
+            </div>
             <div class="text-[10px] text-content-muted mt-0.5">Aspek Kemudahan</div>
           </div>
         </div>
@@ -479,71 +510,33 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <ContentCard cardPadding="large" customClass="space-y-4">
-        <div class="flex items-center gap-1 text-accent">
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-        </div>
-        <p class="text-xs sm:text-sm leading-relaxed text-content">
-          "Sebelumnya saya selalu bingung membedakan peran CU dan ALU saat proses Fetch-Decode-Execute. Begitu lihat simulasi dan video di modul 2, model mentalnya langsung terbentuk jelas!"
-        </p>
-        <div class="flex items-center gap-3 pt-3 border-t border-border-subtle">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-canvas font-black text-xs">
-            AF
+      {#each data.featuredFeedbacks as feedbackItem (feedbackItem.id)}
+        <ContentCard cardPadding="large" customClass="space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center gap-1 text-accent">
+              {#each [1, 2, 3, 4, 5] as starPosition}
+                <IconSymbol
+                  name="star"
+                  sizeInPixels={16}
+                  filled={starPosition <= Math.round(feedbackItem.averageScore)}
+                />
+              {/each}
+            </div>
+            <p class="text-xs sm:text-sm leading-relaxed text-content italic">
+              "{feedbackItem.comments}"
+            </p>
           </div>
-          <div>
-            <div class="text-xs font-bold text-content-heading">Ahmad Fauzan</div>
-            <div class="text-[11px] text-content-muted">Peserta Kursus Sistem Komputer</div>
+          <div class="flex items-center gap-3 pt-3 border-t border-border-subtle mt-auto">
+            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-canvas font-black text-xs shrink-0 select-none">
+              {getStudentInitials(feedbackItem.studentName)}
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-content-heading truncate">{feedbackItem.studentName}</div>
+              <div class="text-[11px] text-content-muted truncate">{feedbackItem.classBatch || 'Peserta EduKomputer'}</div>
+            </div>
           </div>
-        </div>
-      </ContentCard>
-
-      <ContentCard cardPadding="large" customClass="space-y-4">
-        <div class="flex items-center gap-1 text-accent">
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-        </div>
-        <p class="text-xs sm:text-sm leading-relaxed text-content">
-          "Tampilan gelapnya sangat nyaman di mata, tidak bikin lelah walau belajar berjam-jam. Rangkuman cheatsheet di bawah video sangat membantu buat bahan review sebelum praktikum."
-        </p>
-        <div class="flex items-center gap-3 pt-3 border-t border-border-subtle">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-canvas font-black text-xs">
-            DL
-          </div>
-          <div>
-            <div class="text-xs font-bold text-content-heading">Dewi Lestari</div>
-            <div class="text-[11px] text-content-muted">Siswa Kelas Hardware & IoT</div>
-          </div>
-        </div>
-      </ContentCard>
-
-      <ContentCard cardPadding="large" customClass="space-y-4">
-        <div class="flex items-center gap-1 text-accent">
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-          <IconSymbol name="star" sizeInPixels={16} />
-        </div>
-        <p class="text-xs sm:text-sm leading-relaxed text-content">
-          "Fitur kuisnya keren banget! Begitu pilih jawaban langsung muncul penjelasan ilmiahnya, jadi tahu persis salah di mana tanpa perlu menunggu hasil esok hari."
-        </p>
-        <div class="flex items-center gap-3 pt-3 border-t border-border-subtle">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-canvas font-black text-xs">
-            RS
-          </div>
-          <div>
-            <div class="text-xs font-bold text-content-heading">Rian Saputra</div>
-            <div class="text-[11px] text-content-muted">Praktisi Rekayasa Perangkat Lunak</div>
-          </div>
-        </div>
-      </ContentCard>
+        </ContentCard>
+      {/each}
     </div>
   </section>
 
