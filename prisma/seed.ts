@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { prisma, UserRole, ModuleCategory } from '../src/lib/db';
 
 async function seedDatabase(): Promise<void> {
-	console.log('🌱 Memulai Idempotent Database Seeding...');
+	console.log('🌱 Memulai Idempotent Database Seeding (12 Modul IPO & Soal Kuis)...');
 
 	// 1. Seed Super Admin User
 	const adminEmail = 'super@admin.com';
@@ -36,8 +36,9 @@ async function seedDatabase(): Promise<void> {
 		console.log(`✅ Admin user dibuat: ${adminEmail}`);
 	}
 
-	// 2. Seed 4 Learning Modules (Model IPO)
+	// 2. Seed 12 Learning Modules (3 Modul per Kategori IPO)
 	const learningModulesData = [
+		// --- KATEGORI 1: INPUT DEVICES (Masukan) ---
 		{
 			code: 'MOD-01',
 			title: 'Perangkat Masukan (Input Devices)',
@@ -62,28 +63,11 @@ Komputer beroperasi secara eksklusif menggunakan representasi biner \`0\` dan \`
 ---
 
 ## 2. Klasifikasi Perangkat Masukan Komputer
-Perangkat input dikelompokkan berdasarkan modalitas data yang diakuisisi:
+* **Keyboard:** Matriks sakelar dengan mikrokontroler internal penghasil scan code biner (Make & Break code).
+* **Pointing Devices:** Mouse optik berkecepatan ribuan frame per detik DSP dan touchscreen kapasitif.
+* **Mikrofon & Kamera Digital:** Sensor CCD/CMOS yang mengubah getaran akustik dan foton cahaya menjadi sinyal digital.
 
-### A. Perangkat Berbasis Teks & Ketukan (Keyboard)
-* **Mekanisme Matriks Sakelar:** Penekanan tombol menutup sirkuit pada baris dan kolom tertentu.
-* **Mikrokontroler Keyboard:** Menghasilkan kode pemindaian (*scan code*) unik untuk setiap tombol (Make Code saat ditekan, Break Code saat dilepas) dan mengirimkannya melalui antarmuka USB/HID ke CPU via interupsi hardware.
-
-### B. Perangkat Penunjuk Spasial (Pointing Devices)
-* **Mouse Optik/Laser:** Menggunakan sensor kamera mini berkecepatan ribuan bingkai per detik (*Digital Signal Processor*) untuk mendeteksi perubahan mikroskopis tekstur permukaan meja.
-* **Layar Sentuh (Touchscreen):** Terdiri atas tipe *Kapasitif Proyeksi* (merespons medan elektrostatik jari manusia) dan *Resistif* (bekerja berdasarkan tekanan mekanis dua lapisan konduktif).
-
-### C. Akuisisi Suara & Citra Digital
-* **Mikrofon:** Membran transduser mengonversi getaran gelombang tekanan udara menjadi sinyal tegangan mikro, yang kemudian diproses oleh chip audio ADC (misal: 24-bit / 96 kHz).
-* **Pemindai & Kamera Digital (CCD/CMOS Sensor):** Mengubah foton cahaya yang dipantulkan dokumen menjadi muatan elektron pada matriks piksel fotodioda.
-
----
-
-## 3. Hubungan Input dengan Bus Sistem
-Data dari perangkat masukan dialirkan ke prosesor melalui:
-1. **Interrupt Request (IRQ):** Perangkat memberi sinyal ke CPU bahwa data baru siap dibaca.
-2. **Direct Memory Access (DMA):** Untuk input berkecepatan tinggi (seperti streaming kamera), data langsung ditransfer ke memori RAM tanpa membebani siklus eksekusi CPU secara konstan.
-
-> 💡 **Kunci Konseptual:** Perangkat input tidak sekadar menerima data mentah, melainkan memastikan data tersebut terstandarisasi ke dalam format biner yang sesuai dengan arsitektur bus sistem sebelum diteruskan ke unit pemrosesan.`
+> 💡 **Kunci Konseptual:** Perangkat input memastikan data fisik terstandarisasi ke dalam format biner yang sesuai dengan arsitektur bus sistem sebelum diteruskan ke unit pemrosesan.`
 		},
 		{
 			code: 'MOD-02',
@@ -96,59 +80,24 @@ Data dari perangkat masukan dialirkan ke prosesor melalui:
 			isPublished: true,
 			summaryContent: `# ⚙️ Modul 2: Unit Pemrosesan Inti (Processing Unit)
 
-Unit Pemrosesan Inti (*Central Processing Unit* atau CPU) merupakan pusat pengendali dan komputasi komputer yang bertanggung jawab menginterpretasikan, mengorkestrasikan, dan mengeksekusi instruksi program perangkat lunak.
+Unit Pemrosesan Inti (*Central Processing Unit* atau CPU) merupakan pusat kendali dan kalkulasi komputer yang bertugas menginterpretasikan serta mengeksekusi instruksi program perangkat lunak.
 
 ---
 
-## 1. Arsitektur Komputasi: Model Von Neumann
-Mayoritas komputer modern mengadopsi model **Von Neumann**, di mana instruksi program dan data biner berbagi ruang memori utama dan bus transmisi yang sama.
+## 1. Tiga Komponen Internal Utama CPU
+1. **Control Unit (CU):** Mengatur lalu lintas instruksi (*fetch*, *decode*, dan sinyal kendali *clock*).
+2. **Arithmetic Logic Unit (ALU):** Melakukan komputasi aritmetika (+, -, *, /) dan logika boolean (AND, OR, NOT, XOR, perbandingan relasional).
+3. **Register File:** Memori internal berkecepatan ultra tinggi (*Program Counter*, *Instruction Register*, *Accumulator*).
 
 ---
 
-## 2. Tiga Komponen Internal Utama CPU
-
-### A. Control Unit (CU)
-Control Unit adalah pengatur lalu lintas logika dan instruksi:
-* Mengambil (*fetch*) kode operasi (*opcode*) dari RAM.
-* Menerjemahkan (*decode*) instruksi ke dalam sinyal-sinyal mikro kendali.
-* Mengatur sinyal sinkronisasi *clock* agar setiap sirkuit bekerja teratur.
-
-### B. Arithmetic Logic Unit (ALU)
-Sirkuit komputasi murni yang menangani dua jenis operasi dasar:
-1. **Operasi Aritmetika:** Penjumlahan biner (*Full Adder*), pengurangan, perkalian, dan pembagian.
-2. **Operasi Logika Boolean:** Evaluasi relasi \`AND\`, \`OR\`, \`XOR\`, \`NOT\`, serta perbandingan besar/kecil (\`>\`, \`<\`, \`=\`).
-
-### C. Kumpulan Register (Register File)
-Memori internal berkecepatan tertinggi di dalam die CPU dengan kapasitas sangat terbatas:
-* **Program Counter (PC):** Menyimpan alamat memori RAM dari instruksi berikutnya yang akan dieksekusi.
-* **Instruction Register (IR):** Menyimpan kode instruksi yang sedang didekode.
-* **Memory Address Register (MAR):** Menyimpan alamat memori fisik yang sedang diakses.
-* **Memory Data Register (MDR):** Menampung data yang baru dibaca dari atau akan ditulis ke RAM.
-* **Accumulator (ACC):** Menyimpan hasil sementara dari kalkulasi ALU.
-
----
-
-## 3. Siklus Mesin CPU (*Instruction Cycle*)
-Setiap instruksi komputer berjalan melalui empat tahap berulang (*Machine Cycle*):
-
+## 2. Siklus Instruksi Mesin
+Setiap instruksi diproses melalui siklus:
 \`\`\`text
 [ Fetch ] ➔ [ Decode ] ➔ [ Execute ] ➔ [ Store / Write-back ]
 \`\`\`
 
-1. **Fetch:** CPU menyalin instruksi dari RAM pada alamat yang ditunjuk oleh \`PC\` ke dalam \`IR\`. Nilai \`PC\` kemudian dinaikkan (*increment*).
-2. **Decode:** Control Unit menguraikan *opcode* instruksi dan menentukan operan yang dibutuhkan.
-3. **Execute:** ALU menjalankan operasi komputasi atau perpindahan data yang diinstruksikan.
-4. **Store:** Hasil akhir disimpan kembali ke register internal atau dialirkan ke alamat memori utama.
-
----
-
-## 4. Hirarki Memori & Peran Cache CPU
-Untuk mengatasi kesenjangan kecepatan antara CPU GHz yang super cepat dan RAM yang relatif lebih lambat (*memory wall*):
-* **L1 Cache:** Berkecepatan setara clock CPU (kapasitas per-core 32KB - 64KB).
-* **L2 Cache:** Lebih besar namun latensi sedikit lebih tinggi (512KB - 1MB per core).
-* **L3 Cache:** Shared cache untuk seluruh core prosesor (16MB - 64MB+).
-
-> 💡 **Kunci Konseptual:** Performa CPU modern ditentukan oleh efisiensi pipa instruksi (*instruction pipelining*) dan kemampuan mempertahankan laju eksekusi siklus tanpa *stall* akibat kelambatan akses data memori.`
+> 💡 **Kunci Konseptual:** CPU modern meningkatkan kecepatan komputasi melalui *pipelining* dan eksekusi instruksi paralel.`
 		},
 		{
 			code: 'MOD-03',
@@ -161,46 +110,16 @@ Untuk mengatasi kesenjangan kecepatan antara CPU GHz yang super cepat dan RAM ya
 			isPublished: true,
 			summaryContent: `# 🖥️ Modul 3: Perangkat Keluaran (Output Devices)
 
-Perangkat Keluaran (*Output Devices*) bertugas menerjemahkan bit-bit data biner hasil pemrosesan komputer menjadi wujud fisik, visual, audio, atau mekanikal yang dapat diindera dan dimanfaatkan oleh manusia maupun sistem mesin lainnya.
+Perangkat Keluaran (*Output Devices*) bertugas menerjemahkan bit-bit data biner hasil pemrosesan komputer menjadi representasi fisik visual, audio, cetak, atau mekanikal.
 
 ---
 
-## 1. Prinsip Kerja: Digital to Analog Conversion (DAC)
-Sebagaimana telinga dan mata manusia beroperasi dalam ranah gelombang kontinu, perangkat keluaran mengandalkan konverter digital-ke-analog (DAC) serta sirkuit *display controller*:
-* **Video Framebuffer:** Area RAM grafis khusus (VRAM) yang memetakan warna setiap piksel dalam matriks bit RGB.
-* **DAC Audio:** Mengonversi aliran data PCM biner menjadi variasi gelombang tegangan analog yang menggetarkan membran transduser speaker.
+## 1. Prinsip Konversi Digital ke Analog (DAC)
+* **Visual Framebuffer:** VRAM yang memetakan warna tiap piksel dalam matriks bit RGB ke layar monitor LCD/OLED.
+* **DAC Audio:** Mengonversi aliran biner PCM menjadi getaran gelombang analog yang menggerakkan konus speaker.
+* **Pencetak Laser & Inkjet:** Mengubah citra bitmap menjadi pola muatan statis toner atau semprotan tinta mikroskopis.
 
----
-
-## 2. Klasifikasi Perangkat Keluaran Utama
-
-### A. Monitor & Perangkat Visual (Display)
-* **Teknologi Panel LCD (Liquid Crystal Display):** Menggunakan kristal cair yang diputar oleh medan listrik untuk memodulasi cahaya dari lampu latar (*LED backlight*).
-* **Teknologi OLED (Organic Light Emitting Diode):** Setiap sub-piksel organik memancarkan cahayanya sendiri, menghasilkan rasio kontras tak hingga dan waktu respon mikrodetik.
-* **Spesifikasi Kunci:** Resolusi piksel (Full HD, 4K), Rasio Aspek (16:9), *Refresh Rate* (60Hz, 144Hz), dan kedalaman warna (*Color Depth* 8-bit/10-bit).
-
-### B. Pencetak Fisik (Printers & Plotters)
-* **Printer Inkjet:** Menyemprotkan tetesan mikro tinta cair melalui pemanas termal (*bubble jet*) atau kristal piezoelektrik ke atas kertas.
-* **Printer Laser (Electrophotography):** Sinar laser menggambar pola muatan elektrostatik pada silinder drum fotoreseptor, menarik serbuk toner bermuatan, lalu melelehkannya ke kertas dengan panas *fuser unit*.
-
-### C. Pengeras Suara (Audio Output)
-* Menguatkan sinyal analog dari DAC melalui penguat operasional (*amplifier*), menghasilkan variasi medan magnet pada *voice coil* yang mendorong konus speaker untuk menghasilkan gelombang suara akustik.
-
-### D. Aktuator & Perangkat Kendali Mekatronika
-* Motor servo, relay solenoid, dan sistem pneumatik yang digerakkan oleh mikrokontroler untuk mengubah instruksi komputasi menjadi gerakan fisik pada otomasi industri dan robotika.
-
----
-
-## 3. Tabel Perbandingan Karakteristik Perangkat Keluaran
-
-| Perangkat Keluaran | Bentuk Representasi | Metrik Kualitas Kunci | Satuan Pengukuran |
-| :--- | :--- | :--- | :--- |
-| **Monitor Komputer** | Visual Fotometrik | Resolusi & Refresh Rate | Piksel, Hertz (Hz) |
-| **Printer Laser** | Fisik Permanen (Cetak) | Kerapatan Titik & Kecepatan | DPI (*Dots Per Inch*), PPM |
-| **Speaker Audio** | Akustik Gelombang Suara | Respons Frekuensi & SNR | Hertz (Hz), Decibel (dB) |
-| **Aktuator Robot** | Gerakan Kinematik Mekanis | Torsi & Presisi Sudut | Nm (*Newton meter*), Derajat |
-
-> 💡 **Kunci Konseptual:** Tanpa perangkat keluaran, seluruh hasil kalkulasi matematis bernilai triliunan operasi per detik di dalam CPU tidak akan memiliki dampak praktis bagi pengguna manusia.`
+> 💡 **Kunci Konseptual:** Tanpa perangkat keluaran, seluruh hasil kalkulasi matematis di CPU tidak dapat diakses atau dimanfaatkan oleh manusia.`
 		},
 		{
 			code: 'MOD-04',
@@ -211,54 +130,264 @@ Sebagaimana telinga dan mata manusia beroperasi dalam ranah gelombang kontinu, p
 			durationInMinutes: 7,
 			orderIndex: 4,
 			isPublished: true,
-			summaryContent: `# 💾 Modul 4: Media Penyimpanan & Perangkat Lunak (Storage & Software)
+			summaryContent: `# 💾 Modul 4: Media Penyimpanan & Perangkat Lunak
 
-Siklus Input-Process-Output (IPO) membutuhkan komponen persistensi jangka panjang (*Secondary Storage*) dan lapisan logika instruksional (*Software*) agar sistem komputer dapat beroperasi secara mandiri dan menyimpan informasi melampaui siklus daya listrik.
-
----
-
-## 1. Mengapa Dibutuhkan Penyimpanan Sekunder?
-Memori kerja utama (RAM) bersifat **volatile**—seluruh isi data sirna saat tegangan listrik diputus. Penyimpanan sekunder (*Secondary Storage*) mengadopsi teknologi **non-volatile** untuk menjamin data tetap utuh secara permanen.
+Komponen persistensi jangka panjang (*Secondary Storage*) dan lapisan logika instruksional (*Software*) memungkinkan komputer beroperasi mandiri melampaui siklus daya listrik.
 
 ---
 
-## 2. Evolusi Media Penyimpanan Non-Volatile
-
-### A. Hard Disk Drive (HDD Magnetik)
-* **Mekanisme:** Piringan magnetik (*platter*) berputar pada kecepatan 5400-7200 RPM dengan lengan mekanis (*read/write head*) yang mengapung di atas bantalan udara.
-* **Karakteristik:** Kapasitas besar dengan harga per-gigabyte sangat ekonomis, namun rentan terhadap goncangan mekanik dan memiliki latensi pencarian (*seek time*) relatif lambat (beberapa milidetik).
-
-### B. Solid State Drive (SSD Flash NAND)
-* **Mekanisme:** Tidak memiliki komponen bergerak. Menggunakan sel memori semikonduktor *floating-gate* atau *charge-trap transistor* untuk menjebak elektron.
-* **Protokol NVMe (Non-Volatile Memory Express):** Memanfaatkan jalur bus berkecepatan tinggi PCI Express (PCIe) dengan antrian instruksi paralel masif, mencapai kecepatan transfer gigabyte per detik.
+## 1. Memori Volatile vs Non-Volatile
+* **RAM (Volatile):** Memori kerja super cepat namun data hilang saat listrik mati.
+* **Secondary Storage (Non-Volatile):** Mempertahankan integritas data permanen (SSD Flash NVMe & HDD magnetik).
 
 ---
 
-## 3. Taksonomi Perangkat Lunak (*Software*)
+## 2. Hierarki Perangkat Lunak
+1. **System Software:** Sistem operasi (Windows, Linux, macOS) pengatur alokasi CPU, RAM, berkas, dan device driver.
+2. **Application Software:** Program yang memfasilitasi kebutuhan produktivitas pengguna.
 
-Perangkat lunak adalah sekumpulan instruksi, algoritma, dan data terstruktur yang memberitahu perangkat keras apa yang harus dikerjakan. Dibagi menjadi dua kategori hierarki:
+> 💡 **Kunci Konseptual:** Siklus IPO lengkap: Input diakuisisi ➔ CPU memproses di bawah instruksi Software ➔ RAM menampung sementara ➔ Storage menyimpan permanen ➔ Output menyajikan informasi.`
+		},
 
-### A. Perangkat Lunak Sistem (*System Software*)
-* **Sistem Operasi (OS - Operating System):** Perangkat lunak fundamental (seperti Linux, Windows, macOS) yang bertindak sebagai jembatan antara perangkat keras dan aplikasi:
-  1. *Manajemen Prosesor:* Mengatur penjadwalan eksekusi thread/proses (*scheduler*).
-  2. *Manajemen Memori:* Mengalokasikan ruang RAM virtual dan proteksi memori antar-aplikasi.
-  3. *Manajemen Berkas:* Mengorganisasi penyimpanan file hierarkis (NTFS, EXT4, APFS).
-* **Device Drivers:** Modul kode khusus yang menerjemahkan panggilan API umum sistem operasi menjadi sinyal register spesifik perangkat keras tertentu (misal: driver kartu grafis).
-* **Firmware (BIOS/UEFI):** Kode permanen berkapasitas kecil yang tertanam pada chip motherboard untuk inisialisasi hardware (*Power-On Self-Test / POST*) dan booting OS.
+		// --- MODUL PENDALAMAN (5 - 12) ---
+		{
+			code: 'MOD-05',
+			title: 'Sensor Canggih & Akuisisi Multimedia Digital',
+			slug: 'sensor-multimedia',
+			category: ModuleCategory.INPUT,
+			videoUrl: 'https://www.youtube.com/embed/1onXms-0v-s',
+			durationInMinutes: 6,
+			orderIndex: 5,
+			isPublished: true,
+			summaryContent: `# 📡 Modul 5: Sensor Canggih & Akuisisi Multimedia
 
-### B. Perangkat Lunak Aplikasi (*Application Software*)
-Program yang dirancang khusus untuk memfasilitasi kebutuhan produktivitas manusia:
-* Pengolah Kata & Lembar Sebar (Office Suites).
-* Web Browser & Klien Komunikasi Jaringan.
-* Perangkat Lunak Rekayasa & IDE Kompilasi Kode.
+Perkembangan komputasi modern memperluas perangkat masukan dari sekadar keyboard mekanik menuju ekosistem sensor cerdas dan multimedia digital.
 
 ---
 
-## 4. Rangkuman Siklus IPO Terintegrasi
-1. Data fisik diakuisisi oleh **Input Devices**.
-2. **CPU** melakukan komputasi dan manipulasi data di bawah instruksi **Software**.
-3. Hasil sementara ditampung di **RAM**, dan hasil permanen diarsipkan ke **Storage**.
-4. Informasi final disajikan ke dunia nyata melalui **Output Devices**.`
+## 1. Transduser Biosensor & Biometrik
+* **Pemindai Sidik Jari Optik & Ultrasonik:** Mengukur pantulan gelombang suara frekuensi tinggi untuk memetakan alur dermis kulit.
+* **Pengenalan Wajah 3D (Structured Light):** Memancarkan ribuan titik inframerah untuk membaca kontur geometri wajah.
+
+---
+
+## 2. Sensor Inersia & Spasial (IMU)
+* **Akselerometer & Giroskop:** Sensor MEMS mikroskopis yang mendeteksi percepatan gravitasi dan rotasi spasial sudut pergerakan perangkat.
+* **LiDAR (Light Detection and Ranging):** Mengukur waktu pantulan pulsa laser (*Time of Flight*) untuk rekonstruksi spasial 3D secara instan.
+
+> 💡 **Kunci Konseptual:** Sensor mengubah variabel fisik lingkungan (suhu, jarak, orientasi) menjadi tegangan analog yang diubah oleh ADC menjadi data numerik biner.`
+		},
+		{
+			code: 'MOD-06',
+			title: 'Jalur Bus Sistem, Polling & Interupsi Perangkat',
+			slug: 'bus-interupsi',
+			category: ModuleCategory.INPUT,
+			videoUrl: 'https://www.youtube.com/embed/R7p-nPg8t_g',
+			durationInMinutes: 7,
+			orderIndex: 6,
+			isPublished: true,
+			summaryContent: `# ⚡ Modul 6: Jalur Bus Sistem, Polling & Interupsi
+
+Komunikasi antara perangkat masukan dan unit prosesor diatur oleh arsitektur bus dan mekanisme pensinyalan perangkat keras.
+
+---
+
+## 1. Tiga Komponen Bus Sistem
+* **Data Bus:** Menghantarkan nilai data aktual (lebar bit: 32-bit, 64-bit).
+* **Address Bus:** Menentukan lokasi alamat memori atau port I/O target.
+* **Control Bus:** Mentransmisikan sinyal sinkronisasi baca/tulis (*Read/Write Control*) dan deteksi clock.
+
+---
+
+## 2. Polling vs Interrupt-Driven I/O
+* **Programmed I/O (Polling):** CPU terus-menerus mengecek status register perangkat input dalam loop. Sangat boros siklus CPU!
+* **Interrupt-Driven I/O:** Perangkat masukan mengirimkan sinyal Interupsi Hardware (IRQ) ke CPU saat data siap. CPU menunda tugasnya sejenak untuk melayani *Interrupt Service Routine (ISR)*.
+* **DMA (Direct Memory Access):** Kontroler khusus memindahkan data dalam blok besar dari I/O langsung ke RAM tanpa melibatkan CPU.
+
+> 💡 **Kunci Konseptual:** Interrupt dan DMA membebaskan prosesor dari keharusan menunggu lambatnya respon perangkat fisik.`
+		},
+		{
+			code: 'MOD-07',
+			title: 'Siklus Mesin CPU & Instruction Pipelining',
+			slug: 'siklus-instruksi-cpu',
+			category: ModuleCategory.PROCESS,
+			videoUrl: 'https://www.youtube.com/embed/jFDMZpkUWCw',
+			durationInMinutes: 8,
+			orderIndex: 7,
+			isPublished: true,
+			summaryContent: `# 🏎️ Modul 7: Siklus Mesin CPU & Pipelining
+
+Untuk meningkatkan kinerja eksekusi miliaran instruksi per detik, CPU modern mengadopsi teknik pipa instruksi (*Instruction Pipelining*).
+
+---
+
+## 1. Analogi Jalur Perakitan Pipelining
+Tanpa pipelining, CPU menunggu instruksi selesai secara sekuensial penuh (Fetch ➔ Decode ➔ Execute ➔ Store) baru memulai instruksi kedua.
+Dengan **Pipelining 5 Tahap (IF, ID, EX, MEM, WB)**:
+* Saat instruksi #1 sedang di-*Execute*, instruksi #2 sedang di-*Decode*, dan instruksi #3 sedang di-*Fetch*!
+
+---
+
+## 2. Bahaya Pipelining (Pipeline Hazards)
+1. **Structural Hazard:** Dua tahapan membutuhkan sumber daya perangkat keras yang sama secara bersamaan.
+2. **Data Hazard:** Instruksi bergantung pada hasil kalkulasi instruksi sebelumnya yang belum selesai ditulis (*Write-After-Read*).
+3. **Control / Branch Hazard:** Percabangan kode (IF/GOTO) menyebabkan instruksi yang sudah di-*fetch* harus dibuang (*Pipeline Flush*).
+
+> 💡 **Kunci Konseptual:** *Branch Prediction* modern menggunakan kecerdasan probabilistik perangkat keras untuk menebak alur cabang kode guna mencegah hilangnya siklus instruksi.`
+		},
+		{
+			code: 'MOD-08',
+			title: 'Hirarki Memori Cache & Fenomena Memory Wall',
+			slug: 'cache-dan-latensi',
+			category: ModuleCategory.PROCESS,
+			videoUrl: 'https://www.youtube.com/embed/6JpLD3PUAZk',
+			durationInMinutes: 7,
+			orderIndex: 8,
+			isPublished: true,
+			summaryContent: `# 🧱 Modul 8: Hirarki Memori Cache & Fenomena Memory Wall
+
+Kesenjangan kecepatan antara unit pemrosesan CPU dan memori utama RAM melahirkan salah satu tantangan terbesar dalam arsitektur komputer: **Memory Wall**.
+
+---
+
+## 1. Memahami Memory Wall
+Kecepatan komputasi CPU tumbuh eksponensial lebih cepat daripada waktu latensi pengambilan data dari RAM. Jika CPU harus selalu mengambil instruksi dari RAM, CPU akan sering terdiam (*stall*) menunggu data tiba.
+
+---
+
+## 2. Solusi: Hirarki Tiga Lapisan Cache (SRAM)
+* **L1 Cache:** Terletak di dalam inti (*core*) CPU, bekerja pada kecepatan setara clock CPU (~0.5 - 1 ns latensi).
+* **L2 Cache:** Berkapasitas lebih besar (512KB - 1MB per core) dengan latensi 3-5 ns.
+* **L3 Cache:** Shared cache untuk seluruh multi-core CPU (16MB - 64MB+) dengan latensi 10-20 ns.
+* **RAM (DRAM):** Memori utama berkapasitas gigabyte dengan latensi 60-100 ns.
+
+---
+
+## 3. Prinsip Lokalitas (Locality of Reference)
+* **Temporal Locality:** Data yang baru saja diakses kemungkinan besar akan diakses kembali dalam waktu dekat.
+* **Spatial Locality:** Data yang beralamat memori berdekatan dengan data yang sedang dibaca kemungkinan besar akan dibutuhkan berikutnya.
+
+> 💡 **Kunci Konseptual:** Cache Hit menghemat ribuan siklus mesin; semakin tinggi rasio Cache Hit, semakin dekat CPU dengan performa puncaknya.`
+		},
+		{
+			code: 'MOD-09',
+			title: 'Teknologi Display, GPU Framebuffer & Refresh Rate',
+			slug: 'display-gpu-framebuffer',
+			category: ModuleCategory.OUTPUT,
+			videoUrl: 'https://www.youtube.com/embed/Bks2XpG9a44',
+			durationInMinutes: 6,
+			orderIndex: 9,
+			isPublished: true,
+			summaryContent: `# 🎨 Modul 9: Teknologi Display & GPU Framebuffer
+
+Perangkat keluaran visual mengandalkan unit pengolah grafis (*Graphics Processing Unit* / GPU) untuk menyajikan jutaan piksel berfrekuensi tinggi ke layar mata pengguna.
+
+---
+
+## 1. Anatomi Framebuffer Grafis
+* Framebuffer adalah area memori VRAM khusus yang memegang representasi bitmap dua dimensi dari setiap piksel yang akan digambar di layar.
+* **Double Buffering:** Menggunakan *Front Buffer* (yang sedang ditampilkan di layar) dan *Back Buffer* (tempat GPU merender frame berikutnya). Mencegah distorsi visual garis (*screen tearing*).
+
+---
+
+## 2. Refresh Rate vs Frame Rate (FPS)
+* **FPS (Frames Per Second):** Kecepatan GPU menghasilkan gambar baru setiap detik.
+* **Refresh Rate (Hz):** Frekuensi fisik panel layar merefresh gambar (60Hz, 120Hz, 144Hz).
+* **Sinkronisasi Dinamis:** Teknologi G-Sync dan FreeSync menyinkronkan refresh rate layar dengan laju FPS GPU secara real-time.
+
+> 💡 **Kunci Konseptual:** Output visual adalah hasil transformasi matriks koordinat matematika poligon 3D menjadi warna fotometrik RGB piksel 2D pada display.`
+		},
+		{
+			code: 'MOD-10',
+			title: 'Sistem Suara Akustik, DAC & Aktuator Mekatronika',
+			slug: 'audio-dac-aktuator',
+			category: ModuleCategory.OUTPUT,
+			videoUrl: 'https://www.youtube.com/embed/nws_q_PjUcw',
+			durationInMinutes: 6,
+			orderIndex: 10,
+			isPublished: true,
+			summaryContent: `# 🔊 Modul 10: Sistem Audio, DAC & Aktuator Mekatronika
+
+Keluaran komputer tidak hanya terbatas pada layar kaca, tetapi mencakup getaran akustik suara dan aksi kendali fisik motor di dunia nyata.
+
+---
+
+## 1. Digital to Analog Audio (DAC) & Filter Rekonstruksi
+* Berkas audio digital tersimpan sebagai bilangan biner diskret (misal: 16-bit / 44.1 kHz).
+* Chip DAC mengonversi bit-bit tersebut menjadi anak tangga tegangan listrik analog kontinu.
+* **Low-Pass Filter:** Menghaluskan anak tangga tegangan untuk merekonstruksi gelombang sinusoidal murni yang menggetarkan konus speaker.
+
+---
+
+## 2. Aktuator & Output Mekatronika
+* **Motor Servo & Stepper:** Mengonversi sinyal pulsa modulasi (*PWM - Pulse Width Modulation*) menjadi sudut presisi pergerakan lengan robot.
+* **Relay & Solenoid:** Sakelar elektromagnetik yang memungkinkan sinyal logika mikrokomputer 5V mengendalikan daya listrik tegangan tinggi pada industri otomasi.
+
+> 💡 **Kunci Konseptual:** Aktuator adalah perangkat keluaran yang menghubungkan logika program komputer ke dalam gerakan fisik mekanikal di dunia nyata.`
+		},
+		{
+			code: 'MOD-11',
+			title: 'Evolusi Storage: Dari HDD Magnetik ke NVMe PCIe',
+			slug: 'evolusi-storage-nvme',
+			category: ModuleCategory.STORAGE_SOFTWARE,
+			videoUrl: 'https://www.youtube.com/embed/5U9v-Q3lV60',
+			durationInMinutes: 7,
+			orderIndex: 11,
+			isPublished: true,
+			summaryContent: `# 💽 Modul 11: Evolusi Media Penyimpanan Sekunder
+
+Kecepatan transfer data penyimpanan sekunder telah berevolusi dari mekanisme putaran piringan mekanik menuju semikonduktor flash berkecepatan multi-gigabyte.
+
+---
+
+## 1. Keterbatasan Mekanis Hard Disk Drive (HDD)
+* Piringan berputar (5400-7200 RPM) dengan head pembaca fisik.
+* Memiliki **Seek Time** (waktu menggerakkan head ke silinder tertentu) dan **Rotational Latency** (waktu menunggu sektor berputar ke bawah head) rata-rata 5-10 milidetik.
+
+---
+
+## 2. Lompatan Arsitektur SSD NVMe (PCI Express)
+* **SATA Interface:** Warisan HDD lama yang dibatasi jalur antrian tunggal (1 queue, kedalaman 32 instruksi) dengan batas transfer ~550 MB/s.
+* **NVMe Interface:** Didesain khusus untuk memori flash semikonduktor, berjalan langsung di atas jalur bus PCIe dengan **64.000 antrian paralel** (masing-masing 64.000 perintah), menghasilkan laju transfer melampaui 7.000 MB/s dengan latensi mikrodetik!
+
+> 💡 **Kunci Konseptual:** Paralelisme arsitektur NVMe memungkinkan penyimpanan sekunder mengimbangi kebutuhan komputasi CPU multi-core modern.`
+		},
+		{
+			code: 'MOD-12',
+			title: 'Arsitektur Sistem Operasi, Kernel & Virtual Memory',
+			slug: 'arsitektur-os-kernel',
+			category: ModuleCategory.STORAGE_SOFTWARE,
+			videoUrl: 'https://www.youtube.com/embed/26QPDBe-NB8',
+			durationInMinutes: 8,
+			orderIndex: 12,
+			isPublished: true,
+			summaryContent: `# 🛡️ Modul 12: Arsitektur Sistem Operasi, Kernel & Virtual Memory
+
+Sistem Operasi adalah perangkat lunak sistem fundamental yang menyediakan abstraksi aman dan efisien antara aplikasi pengguna dan perangkat keras komputer.
+
+---
+
+## 1. Mode Perlindungan CPU: User Mode vs Kernel Mode
+* **User Mode (Ring 3):** Aplikasi berjalan dengan hak terbatas, tidak dapat mengakses langsung memori fisik atau port I/O perangkat keras.
+* **Kernel Mode (Ring 0):** Kernel sistem operasi memiliki kontrol penuh atas seluruh instruksi CPU dan sirkuit motherboard.
+* **System Call (Syscall):** Mekanisme aman ketika aplikasi di User Mode meminta layanan hardware kepada Kernel melalui interupsi software.
+
+---
+
+## 2. Memori Virtual & Paging
+* Setiap program diberikan ruang alamat memori virtual sendiri (seolah memiliki seluruh RAM).
+* **Memory Management Unit (MMU):** Chip perangkat keras yang menerjemahkan alamat virtual program menjadi alamat fisik RAM sesungguhnya melalui tabel halaman (*Page Table*).
+* **Swapping / Paging ke Storage:** Jika RAM penuh, halaman data yang jarang digunakan dipindahkan sementara ke ruang disk (*Swap file*).
+
+---
+
+## 3. Rangkuman Siklus Arsitektur Komputer IPO
+1. **Input Devices & Sensor** mengubah fenomena fisik dunia nyata menjadi data digital biner.
+2. **System Bus & Interrupt Controller** mengalirkan bit data secara teratur ke memori utama RAM.
+3. **CPU (CU & ALU)** mengambil instruksi dari RAM melalui pipa instruksi dan cache bertingkat.
+4. **Operating System & Kernel** mengorkestrasikan proteksi memori, penjadwalan proses, dan manajemen berkas.
+5. **Secondary Storage (SSD NVMe)** mengabadikan data secara non-volatile.
+6. **Output Devices & Display** menyajikan kembali hasil kalkulasi ke wujud visual, audio, cetak, dan mekanik.`
 		}
 	];
 
@@ -299,7 +428,7 @@ Program yang dirancang khusus untuk memfasilitasi kebutuhan produktivitas manusi
 			});
 		}
 	}
-	console.log('✅ 4 Modul Pembelajaran berhasil di-seed.');
+	console.log(`✅ ${learningModulesData.length} Modul Pembelajaran berhasil di-seed (Model IPO Lengkap).`);
 
 	// 3. Seed 10 Quiz Questions with Options
 	const quizQuestionsData = [
@@ -565,7 +694,7 @@ Program yang dirancang khusus untuk memfasilitasi kebutuhan produktivitas manusi
 	}
 	console.log('✅ 10 Butir Soal Kuis & Opsi Jawaban berhasil di-seed.');
 
-	console.log('🎉 Idempotent Database Seeding Berhasil Selesai (Hanya Modul & Soal Kuis)!');
+	console.log('🎉 Idempotent Database Seeding Berhasil Selesai (12 Modul & Soal Kuis)!');
 }
 
 seedDatabase()

@@ -1,4 +1,8 @@
-import type { LearningModulePort, UpdateLearningModuleDto } from '$lib/modules/learning-module';
+import type {
+	LearningModulePort,
+	UpdateLearningModuleDto,
+	CreateLearningModuleDto
+} from '$lib/modules/learning-module';
 import { prisma, type LearningModule } from '$lib/db';
 
 export class PrismaLearningModuleAdapter implements LearningModulePort {
@@ -38,20 +42,53 @@ export class PrismaLearningModuleAdapter implements LearningModulePort {
 		return matchedModule;
 	}
 
+	public async createModule(inputDto: CreateLearningModuleDto): Promise<LearningModule> {
+		const createdModule = await prisma.learningModule.create({
+			data: {
+				code: inputDto.code,
+				title: inputDto.title,
+				slug: inputDto.slug,
+				category: inputDto.category,
+				videoUrl: inputDto.videoUrl,
+				durationInMinutes: inputDto.durationInMinutes,
+				summaryContent: inputDto.summaryContent,
+				orderIndex: inputDto.orderIndex,
+				isPublished: inputDto.isPublished,
+				createdBy: 'ADMIN'
+			}
+		});
+
+		return createdModule;
+	}
+
 	public async updateModule(inputDto: UpdateLearningModuleDto): Promise<LearningModule> {
 		const updatedModule = await prisma.learningModule.update({
 			where: {
-				id: inputDto.id
+				id: inputDto.moduleId
 			},
 			data: {
 				title: inputDto.title,
 				videoUrl: inputDto.videoUrl,
 				summaryContent: inputDto.summaryContent,
-				durationInMinutes: inputDto.durationInMinutes,
+				isPublished: inputDto.isPublished,
 				updatedAt: new Date()
 			}
 		});
 
 		return updatedModule;
+	}
+
+	public async deleteModule(moduleId: string): Promise<boolean> {
+		await prisma.learningModule.update({
+			where: {
+				id: moduleId
+			},
+			data: {
+				deletedAt: new Date(),
+				deletedBy: 'ADMIN'
+			}
+		});
+
+		return true;
 	}
 }

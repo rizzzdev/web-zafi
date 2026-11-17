@@ -12,6 +12,7 @@
     leadingIcon?: string;
     trailingIcon?: string;
     customClass?: string;
+    onclick?: (event: MouseEvent) => void;
     onClickHandler?: (event: MouseEvent) => void;
     children?: Snippet;
   }
@@ -26,9 +27,12 @@
     leadingIcon,
     trailingIcon,
     customClass = '',
+    onclick: directOnClick,
     onClickHandler,
     children,
   }: ActionButtonProperties = $props();
+
+  const resolvedClickHandler = $derived(directOnClick ?? onClickHandler);
 
   const variantClasses = {
     primary:
@@ -55,7 +59,7 @@
 <button
   type={buttonType}
   disabled={isDisabled || isLoading}
-  onclick={onClickHandler}
+  onclick={resolvedClickHandler}
   class="inline-flex cursor-pointer items-center justify-center border transition-all duration-150 select-none disabled:cursor-not-allowed disabled:opacity-50 {variantClasses[
     variantStyle
   ]} {sizeClasses[sizeScale]} {customClass}"

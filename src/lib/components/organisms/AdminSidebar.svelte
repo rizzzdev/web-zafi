@@ -76,16 +76,16 @@
 
 <!-- 1. Permanent Desktop Sidebar (Hidden on mobile, flex on lg) -->
 <aside
-  class="hidden min-h-screen w-64 shrink-0 flex-col border-r border-border-subtle bg-surface text-content lg:flex xl:w-72"
+  class="hidden h-screen w-64 shrink-0 flex-col border-r border-border-subtle bg-surface text-content lg:flex xl:w-72 sticky top-0"
   aria-label="Panel Navigasi Admin Kursus"
 >
   <!-- Brand Header -->
-  <div class="border-b border-border-subtle p-5">
+  <div class="border-b border-border-subtle p-5 shrink-0">
     <BrandLogo size="medium" title="EduKomputer" subtitle="PANEL MANAJEMEN KURSUS" />
   </div>
 
   <!-- Admin Profile Card -->
-  <div class="p-4 border-b border-border-subtle bg-surface-subtle/50">
+  <div class="p-4 border-b border-border-subtle bg-surface-subtle/50 shrink-0">
     <div class="p-3 rounded-xl bg-surface border border-border-subtle flex items-center justify-between shadow-2xs">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-8 h-8 rounded-lg bg-accent text-canvas font-black flex items-center justify-center shrink-0 text-xs">
@@ -128,7 +128,7 @@
   </nav>
 
   <!-- Bottom Actions -->
-  <div class="space-y-2 border-t border-border-subtle bg-surface-subtle/70 p-4">
+  <div class="space-y-2 border-t border-border-subtle bg-surface-subtle/70 p-4 shrink-0 mt-auto">
     <a
       href="/"
       class="flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface px-3 py-2 text-xs font-semibold text-content hover:bg-surface-hover hover:text-content-heading transition-colors"

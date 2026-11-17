@@ -1,4 +1,8 @@
-import type { LearningModulePort, UpdateLearningModuleDto } from '$lib/modules/learning-module';
+import type {
+  LearningModulePort,
+  UpdateLearningModuleDto,
+  CreateLearningModuleDto,
+} from '$lib/modules/learning-module';
 import { type LearningModule, ModuleCategory } from '$lib/db';
 
 export class InMemoryLearningModuleAdapter implements LearningModulePort {
@@ -353,6 +357,38 @@ Memori virtual memberikan ilusi kepada setiap aplikasi bahwa ia memiliki ruang m
   public async getModuleById(moduleId: string): Promise<LearningModule | null> {
     const matchedModule = this.moduleStore.find((moduleItem) => moduleItem.id === moduleId && !moduleItem.deletedAt);
     return matchedModule ? { ...matchedModule } : null;
+  }
+
+  public async createModule(inputDto: CreateLearningModuleDto): Promise<LearningModule> {
+    const newModule: LearningModule = {
+      id: crypto.randomUUID(),
+      code: inputDto.code,
+      title: inputDto.title,
+      slug: inputDto.slug,
+      category: inputDto.category,
+      videoUrl: inputDto.videoUrl,
+      durationInMinutes: inputDto.durationInMinutes ?? 5,
+      summaryContent: inputDto.summaryContent,
+      orderIndex: inputDto.orderIndex ?? 1,
+      isPublished: inputDto.isPublished,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+      createdBy: 'ADMIN',
+      updatedBy: null,
+      deletedBy: null,
+    };
+    this.moduleStore.push(newModule);
+    return { ...newModule };
+  }
+
+  public async deleteModule(moduleId: string): Promise<boolean> {
+    const targetModuleIndex = this.moduleStore.findIndex((moduleItem) => moduleItem.id === moduleId);
+    if (targetModuleIndex !== -1) {
+      this.moduleStore[targetModuleIndex].deletedAt = new Date();
+      return true;
+    }
+    return false;
   }
 
   public async updateModule(inputDto: UpdateLearningModuleDto): Promise<LearningModule> {

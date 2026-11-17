@@ -1,6 +1,6 @@
 import type { LearningModulePort } from './port';
 import type { LearningModule } from '$lib/db';
-import type { UpdateLearningModuleDto } from './dto';
+import type { UpdateLearningModuleDto, CreateLearningModuleDto } from './dto';
 
 export class LearningModuleRepository {
   private readonly learningModulePortAdapter: LearningModulePort;
@@ -21,7 +21,15 @@ export class LearningModuleRepository {
     return this.learningModulePortAdapter.getModuleById(moduleId);
   }
 
+  public async createLearningModuleData(createData: CreateLearningModuleDto): Promise<LearningModule> {
+    return this.learningModulePortAdapter.createModule(createData);
+  }
+
   public async updateLearningModuleData(updateData: UpdateLearningModuleDto): Promise<LearningModule> {
     return this.learningModulePortAdapter.updateModule(updateData);
+  }
+
+  public async deleteLearningModuleData(moduleId: string): Promise<boolean> {
+    return this.learningModulePortAdapter.deleteModule(moduleId);
   }
 }

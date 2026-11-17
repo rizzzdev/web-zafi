@@ -1,58 +1,116 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import Button from '../atoms/Button.svelte';
-  import Input from '../atoms/Input.svelte';
-  import Textarea from '../atoms/Textarea.svelte';
-  import FormField from '../molecules/FormField.svelte';
-  import Icon from '../atoms/Icon.svelte';
-  import type { LearningModule } from '$lib/db';
+  import {
+    ActionButton,
+    TextInput,
+    TextArea,
+    SelectInput,
+    IconSymbol,
+  } from '$lib/components';
+  import type { LearningModule } from '$lib/modules/learning-module';
 
   interface ModuleEditorModalProperties {
-    readonly moduleData: LearningModule;
+    readonly moduleData?: LearningModule | null;
     readonly isOpen: boolean;
     readonly onClose: () => void;
   }
 
-  const { moduleData, isOpen, onClose }: ModuleEditorModalProperties = $props();
+  const { moduleData = null, isOpen, onClose }: ModuleEditorModalProperties = $props();
 
-  let previewVideoUrl = $state('');
+  const isEditMode = $derived(moduleData !== null);
+
+  let codeInput = $state('');
+  let titleInput = $state('');
+  let slugInput = $state('');
+  let categoryInput = $state<string>('INPUT');
+  let orderIndexInput = $state(1);
+  let durationInMinutesInput = $state(5);
+  let videoUrlInput = $state('');
+  let summaryContentInput = $state('');
+  let isPublishedInput = $state(true);
+
   let isSubmittingForm = $state(false);
+  let showVideoPreview = $state(true);
+
+  const categoryOptions = [
+    { label: 'Tahap 1: Input Devices (Masukan)', value: 'INPUT' },
+    { label: 'Tahap 2: Processing Unit (Pemrosesan CPU)', value: 'PROCESS' },
+    { label: 'Tahap 3: Output Devices (Keluaran)', value: 'OUTPUT' },
+    { label: 'Tahap 4: Storage & Software (Penyimpanan & Lunak)', value: 'STORAGE_SOFTWARE' },
+  ];
 
   $effect(() => {
-    if (moduleData?.videoUrl) {
-      previewVideoUrl = moduleData.videoUrl;
+    if (moduleData) {
+      codeInput = moduleData.code;
+      titleInput = moduleData.title;
+      slugInput = moduleData.slug;
+      categoryInput = moduleData.category;
+      orderIndexInput = moduleData.orderIndex;
+      durationInMinutesInput = moduleData.durationInMinutes;
+      videoUrlInput = moduleData.videoUrl;
+      summaryContentInput = moduleData.summaryContent;
+      isPublishedInput = moduleData.isPublished;
+    } else {
+      codeInput = '';
+      titleInput = '';
+      slugInput = '';
+      categoryInput = 'INPUT';
+      orderIndexInput = 5;
+      durationInMinutesInput = 5;
+      videoUrlInput = '';
+      summaryContentInput = '';
+      isPublishedInput = true;
     }
   });
+
+  function handleAutoGenerateSlug(newTitle: string): void {
+    if (!isEditMode && (!slugInput || slugInput.trim() === '')) {
+      slugInput = newTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    }
+  }
 </script>
 
 {#if isOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs overflow-y-auto">
-    <div class="w-full max-w-xl card-base overflow-hidden my-4 sm:my-6 text-content shadow-xl">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between p-3.5 sm:p-4 border-b border-border-subtle bg-surface-subtle">
-        <div class="flex items-center gap-2">
-          <div class="icon-box">
-            <Icon name="edit_note" size="sm" />
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs transition-opacity"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div
+      class="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-border-subtle bg-surface text-content shadow-2xl overflow-hidden duration-150 animate-in fade-in zoom-in-95"
+    >
+      <!-- Fixed Sticky Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-surface-subtle shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center shrink-0">
+            <IconSymbol name={isEditMode ? 'edit_note' : 'add_circle'} sizeInPixels={22} />
           </div>
           <div>
-            <h3 class="text-sm sm:text-base font-bold text-content-heading">Edit Konten Modul Pembelajaran</h3>
-            <span class="text-xs text-content-muted font-mono">{moduleData.code} — {moduleData.category}</span>
+            <h3 class="text-base font-bold text-content-heading">
+              {isEditMode ? 'Edit Konten Modul Pembelajaran' : 'Tambah Modul Pembelajaran Baru'}
+            </h3>
+            <p class="text-xs text-content-muted">
+              {isEditMode ? `${moduleData?.code} — ${moduleData?.category}` : 'Daftarkan materi pembelajaran arsitektur komputer baru'}
+            </p>
           </div>
         </div>
         <button
           type="button"
           onclick={onClose}
-          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-content-muted hover:text-content-heading hover:bg-surface flex items-center justify-center transition-colors"
-          aria-label="Tutup Modal"
+          class="cursor-pointer rounded-lg p-1.5 text-content-muted hover:text-content-heading hover:bg-surface-hover transition-colors"
+          aria-label="Tutup Dialog"
         >
-          <Icon name="close" size="sm" />
+          <IconSymbol name="close" sizeInPixels={20} />
         </button>
       </div>
 
-      <!-- Form Body with enhance & double-submit protection -->
+      <!-- Form Body & Footer wrapper -->
       <form
         method="POST"
-        action="?/updateModule"
+        action={isEditMode ? '?/updateModule' : '?/createModule'}
         use:enhance={() => {
           isSubmittingForm = true;
           return async ({ update }) => {
@@ -61,76 +119,226 @@
             onClose();
           };
         }}
-        class="p-3.5 sm:p-5 flex flex-col gap-3.5 overflow-y-auto"
+        class="flex flex-col flex-1 overflow-hidden"
       >
-        <input type="hidden" name="moduleId" value={moduleData.id} />
+        <!-- Scrollable Form Content -->
+        <div class="overflow-y-auto flex-1 p-5 sm:p-6 space-y-4">
+          {#if isEditMode}
+            <input type="hidden" name="moduleId" value={moduleData?.id} />
+          {/if}
 
-        <FormField labelText="Judul Modul" inputId="title" isRequired>
-          <Input id="title" name="title" value={moduleData.title} required />
-        </FormField>
-
-        <FormField
-          labelText="URL Video Embed (YouTube / Drive)"
-          inputId="videoUrl"
-          isRequired
-          helperText="Gunakan tautan embed, contoh: https://www.youtube.com/embed/..."
-        >
-          <Input
-            id="videoUrl"
-            name="videoUrl"
-            bind:value={previewVideoUrl}
-            required
-          />
-        </FormField>
-
-        <!-- Live Preview Iframe Box -->
-        {#if previewVideoUrl}
-          <div class="rounded-xl border border-border-subtle bg-canvas p-2 overflow-hidden">
-            <span class="text-xs font-semibold text-content-muted block mb-1">Pratinjau Langsung (Live Preview):</span>
-            <div class="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
-              <iframe
-                src={previewVideoUrl}
-                title="Pratinjau Video"
-                class="absolute inset-0 w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
+          <!-- Mode Spesifik Header Info -->
+          {#if isEditMode}
+            <div class="flex items-center gap-2 p-3 rounded-xl border border-border-subtle bg-surface-subtle text-xs text-content-muted">
+              <span class="font-bold font-mono text-accent bg-surface px-2 py-0.5 rounded border border-border-subtle">
+                {codeInput}
+              </span>
+              <span class="font-semibold text-content-heading">Kategori: {categoryInput}</span>
+              <span class="ml-auto font-mono">Urutan: #{orderIndexInput}</span>
             </div>
+          {:else}
+            <!-- Metadata Modul Baru -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="moduleCode" class="block text-xs font-bold text-content-heading mb-1.5">
+                  Kode Modul <span class="text-status-error">*</span>
+                </label>
+                <TextInput
+                  identifier="moduleCode"
+                  inputName="code"
+                  bind:inputValue={codeInput}
+                  placeholderText="MOD-05"
+                  isRequired={true}
+                />
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="moduleCategory" class="block text-xs font-bold text-content-heading mb-1.5">
+                  Kategori Alur IPO <span class="text-status-error">*</span>
+                </label>
+                <SelectInput
+                  identifier="moduleCategory"
+                  selectName="category"
+                  bind:selectedValue={categoryInput}
+                  optionsList={categoryOptions}
+                  isRequired={true}
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="moduleOrderIndex" class="block text-xs font-bold text-content-heading mb-1.5">
+                  Nomor Urut Tampil <span class="text-status-error">*</span>
+                </label>
+                <TextInput
+                  identifier="moduleOrderIndex"
+                  inputName="orderIndex"
+                  inputType="number"
+                  bind:inputValue={orderIndexInput}
+                  placeholderText="5"
+                  isRequired={true}
+                />
+              </div>
+              <div>
+                <label for="moduleDuration" class="block text-xs font-bold text-content-heading mb-1.5">
+                  Estimasi Durasi (Menit) <span class="text-status-error">*</span>
+                </label>
+                <TextInput
+                  identifier="moduleDuration"
+                  inputName="durationInMinutes"
+                  inputType="number"
+                  bind:inputValue={durationInMinutesInput}
+                  placeholderText="5"
+                  isRequired={true}
+                />
+              </div>
+            </div>
+          {/if}
+
+          <!-- Judul Modul -->
+          <div>
+            <label for="moduleTitle" class="block text-xs font-bold text-content-heading mb-1.5">
+              Judul Modul Pembelajaran <span class="text-status-error">*</span>
+            </label>
+            <TextInput
+              identifier="moduleTitle"
+              inputName="title"
+              bind:inputValue={titleInput}
+              onInputEvent={(event) => {
+                const target = event.target as HTMLInputElement;
+                handleAutoGenerateSlug(target.value);
+              }}
+              placeholderText="Contoh: Arsitektur Bus & Interkoneksi Sistem"
+              isRequired={true}
+            />
           </div>
-        {/if}
 
-        <FormField labelText="Rangkuman Materi (Cheatsheet Markdown)" inputId="summaryContent" isRequired>
-          <Textarea
-            id="summaryContent"
-            name="summaryContent"
-            value={moduleData.summaryContent}
-            rows={5}
-            required
-          />
-        </FormField>
+          {#if !isEditMode}
+            <!-- Slug URL Modul Baru -->
+            <div>
+              <label for="moduleSlug" class="block text-xs font-bold text-content-heading mb-1.5">
+                Slug URL (Akses Halaman Mahasiswa: /modul/[slug]) <span class="text-status-error">*</span>
+              </label>
+              <TextInput
+                identifier="moduleSlug"
+                inputName="slug"
+                bind:inputValue={slugInput}
+                placeholderText="arsitektur-bus"
+                isRequired={true}
+              />
+            </div>
+          {/if}
 
-        <div class="flex items-center gap-2 pt-1">
-          <input
-            type="checkbox"
-            id="isPublished"
-            name="isPublished"
-            value="true"
-            checked={moduleData.isPublished}
-            class="w-4 h-4 rounded border-border-subtle bg-surface-subtle text-accent focus:ring-accent"
-          />
-          <label for="isPublished" class="text-xs sm:text-sm font-semibold text-content">
-            Publikasikan modul ini ke halaman mahasiswa
-          </label>
+          <!-- URL Video Embed -->
+          <div>
+            <label for="moduleVideoUrl" class="block text-xs font-bold text-content-heading mb-1.5">
+              URL Video Embed (YouTube / Google Drive) <span class="text-status-error">*</span>
+            </label>
+            <TextInput
+              identifier="moduleVideoUrl"
+              inputName="videoUrl"
+              inputType="url"
+              bind:inputValue={videoUrlInput}
+              placeholderText="https://www.youtube.com/embed/..."
+              isRequired={true}
+            />
+            <p class="text-[11px] text-content-muted mt-1">
+              Gunakan format embed, contoh: <code class="font-mono text-accent">https://www.youtube.com/embed/VIDEO_ID</code>
+            </p>
+          </div>
+
+          <!-- Live Video Preview (Collapsible & Compact) -->
+          {#if videoUrlInput && videoUrlInput.trim().length > 0}
+            <div class="rounded-xl border border-border-subtle bg-surface-subtle p-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-content-heading flex items-center gap-1.5">
+                  <IconSymbol name="smart_display" sizeInPixels={16} />
+                  Pratinjau Video (Live Preview)
+                </span>
+                <button
+                  type="button"
+                  class="cursor-pointer text-xs text-accent hover:text-accent-hover font-semibold transition-colors flex items-center gap-1"
+                  onclick={() => {
+                    showVideoPreview = !showVideoPreview;
+                  }}
+                >
+                  <span>{showVideoPreview ? 'Sembunyikan' : 'Tampilkan'}</span>
+                  <IconSymbol name={showVideoPreview ? 'expand_less' : 'expand_more'} sizeInPixels={16} />
+                </button>
+              </div>
+
+              {#if showVideoPreview}
+                <div class="relative w-full aspect-video max-h-52 rounded-lg overflow-hidden bg-black mx-auto">
+                  <iframe
+                    src={videoUrlInput}
+                    title="Pratinjau Video Modul"
+                    class="absolute inset-0 w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              {/if}
+            </div>
+          {/if}
+
+          <!-- Textarea Rangkuman Cheatsheet Markdown -->
+          <div>
+            <label for="moduleSummaryContent" class="block text-xs font-bold text-content-heading mb-1.5">
+              Rangkuman Materi (Cheatsheet Markdown) <span class="text-status-error">*</span>
+            </label>
+            <TextArea
+              identifier="moduleSummaryContent"
+              inputName="summaryContent"
+              bind:inputValue={summaryContentInput}
+              rowsCount={8}
+              placeholderText="# Judul Rangkuman&#10;&#10;Tuliskan ringkasan materi menggunakan format Markdown..."
+              isRequired={true}
+            />
+            <p class="text-[11px] text-content-muted mt-1">
+              Mendukung format Markdown: heading (#), tebal (**), list (-), dan tabel.
+            </p>
+          </div>
+
+          <!-- Publikasi Checkbox -->
+          <div class="flex items-center gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="isPublishedInput"
+              name="isPublished"
+              value="true"
+              bind:checked={isPublishedInput}
+              class="w-4 h-4 rounded border-border-subtle bg-surface-subtle text-accent focus:ring-accent cursor-pointer"
+            />
+            <label for="isPublishedInput" class="text-xs sm:text-sm font-semibold text-content cursor-pointer">
+              Publikasikan modul ini agar dapat diakses mahasiswa
+            </label>
+          </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-border-subtle">
-          <Button type="button" variant="outline" size="sm" onclick={onClose} disabled={isSubmittingForm}>
+        <!-- Fixed Sticky Footer -->
+        <div class="flex items-center justify-end gap-3 px-5 py-4 border-t border-border-subtle bg-surface-subtle shrink-0">
+          <ActionButton
+            buttonType="button"
+            variantStyle="outline"
+            sizeScale="medium"
+            onClickHandler={onClose}
+            isDisabled={isSubmittingForm}
+          >
             Batal
-          </Button>
-          <Button type="submit" variant="primary" size="sm" isSubmitting={isSubmittingForm} iconName="save">
-            Simpan Perubahan
-          </Button>
+          </ActionButton>
+          <ActionButton
+            buttonType="submit"
+            variantStyle="primary"
+            sizeScale="medium"
+            leadingIcon={isEditMode ? 'save' : 'add'}
+            customClass="font-bold"
+            isDisabled={isSubmittingForm}
+            isLoading={isSubmittingForm}
+            loadingText={isEditMode ? 'Menyimpan...' : 'Menambahkan...'}
+          >
+            {isEditMode ? 'Simpan Perubahan' : 'Tambahkan Modul'}
+          </ActionButton>
         </div>
       </form>
     </div>
