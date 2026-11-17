@@ -1,10 +1,12 @@
-import { defineConfig } from 'prisma/config';
+import 'dotenv/config';
+import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/app_edukomputer_db',
-    },
-  },
+	schema: 'prisma/schema.prisma',
+	datasource: {
+		url: process.env.DATABASE_URL || env('DATABASE_URL')
+	},
+	migrations: {
+		seed: 'bun prisma/seed.ts'
+	}
 });

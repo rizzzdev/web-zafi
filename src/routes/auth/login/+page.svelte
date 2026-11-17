@@ -7,13 +7,14 @@
     ActionButton,
     AlertMessage,
     BrandLogo,
-    QuickLoginCard,
+    IconSymbol,
   } from '$lib/components';
 
-  let { data, form }: PageProps = $props();
+  let { form }: PageProps = $props();
 
   let emailAddressInput = $state('');
   let plainPasswordInput = $state('');
+  let isPasswordVisible = $state(false);
   let isSubmitting = $state(false);
 
   $effect(() => {
@@ -21,11 +22,6 @@
       emailAddressInput = form.emailAddress;
     }
   });
-
-  function handleQuickFill(email: string, pass: string): void {
-    emailAddressInput = email;
-    plainPasswordInput = pass;
-  }
 </script>
 
 <div class="mx-auto w-full max-w-md space-y-6">
@@ -41,9 +37,6 @@
       </p>
     </div>
   </div>
-
-  <!-- Quick Login Helper -->
-  <QuickLoginCard onSelectRole={handleQuickFill} />
 
   <!-- Form Card -->
   <ContentCard cardPadding="large">
@@ -85,14 +78,31 @@
         <label for="plainPassword" class="block text-xs font-bold text-content-heading mb-1.5">
           Kata Sandi Akun <span class="text-status-error">*</span>
         </label>
-        <TextInput
-          identifier="plainPassword"
-          inputName="plainPassword"
-          inputType="password"
-          bind:inputValue={plainPasswordInput}
-          placeholderText="••••••••••••"
-          isRequired={true}
-        />
+        <div class="relative">
+          <TextInput
+            identifier="plainPassword"
+            inputName="plainPassword"
+            inputType={isPasswordVisible ? 'text' : 'password'}
+            bind:inputValue={plainPasswordInput}
+            placeholderText="••••••••••••"
+            isRequired={true}
+            customClass="pr-10"
+          />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-content-muted hover:text-content-heading focus:outline-none transition-colors"
+            onclick={() => {
+              isPasswordVisible = !isPasswordVisible;
+            }}
+            aria-label={isPasswordVisible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+            title={isPasswordVisible ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          >
+            <IconSymbol
+              name={isPasswordVisible ? 'visibility_off' : 'visibility'}
+              sizeInPixels={18}
+            />
+          </button>
+        </div>
       </div>
 
       <div class="pt-2">

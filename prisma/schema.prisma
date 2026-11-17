@@ -146,3 +146,17 @@ model StudentFeedback {
   @@index([deletedAt])
   @@map("student_feedbacks")
 }
+
+model AsyncTask {
+  id                 String    @id @default(uuid())
+  taskType           String    @map("task_type")
+  status             String    @default("PENDING")
+  progressPercentage Int       @default(0) @map("progress_percentage")
+  resultPayload      String?   @map("result_payload") @db.Text
+  errorMessage       String?   @map("error_message") @db.Text
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status])
+  @@map("async_tasks")
+}
