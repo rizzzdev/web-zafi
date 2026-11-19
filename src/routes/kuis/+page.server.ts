@@ -12,9 +12,13 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
   submitQuiz: async ({ request }) => {
     const formData = await request.formData();
-    const studentFullName = formData.get('studentFullName')?.toString() || '';
-    const studentIdentifier = formData.get('studentIdentifier')?.toString() || '';
-    const classBatch = formData.get('classBatch')?.toString() || 'PTIK 2023';
+    const rawStudentFullName = formData.get('studentFullName')?.toString().trim() || '';
+    const rawStudentIdentifier = formData.get('studentIdentifier')?.toString().trim() || '';
+    const rawClassBatch = formData.get('classBatch')?.toString().trim() || '';
+
+    const studentFullName = rawStudentFullName.length >= 3 ? rawStudentFullName : 'Peserta EduKomputer';
+    const studentIdentifier = rawStudentIdentifier.length >= 5 ? rawStudentIdentifier : `TAMU-${Date.now().toString().slice(-6)}`;
+    const classBatch = rawClassBatch.length > 0 ? rawClassBatch : 'PTIK 2023 A';
 
     // Parse all selected options: keys matching question IDs
     const userSelectedAnswers: Record<string, string> = {};

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { enhance } from '$app/forms';
   import type { PageProps } from './$types';
   import {
@@ -23,19 +24,26 @@
   let isSavingToServer = $state(false);
   let savedServerSuccess = $state(false);
   let hiddenSubmissionFormElement: HTMLFormElement | null = $state(null);
+  let recordedAnswers = $state<Record<string, string>>({});
   let submittedAnswersJson = $state('{}');
 
   function startQuizRunner(): void {
     hasStartedQuiz = true;
   }
 
-  function handleQuizFinished(results: {
+  async function handleQuizFinished(results: {
     score: number;
     correctCount: number;
     totalCount: number;
     answers: Record<string, string>;
-  }): void {
+  }): Promise<void> {
+    recordedAnswers = results.answers;
     submittedAnswersJson = JSON.stringify(results.answers);
+
+    await tick();
+    if (hiddenSubmissionFormElement) {
+      hiddenSubmissionFormElement.requestSubmit();
+    }
   }
 </script>
 
@@ -53,11 +61,21 @@
     </p>
   </div>
 
-  {#if form?.isSuccess}
+  {#if isSavingToServer}
+    <div class="flex justify-center">
+      <StatusBadge badgeTone="blue" textLabel="Sedang menyimpan rekaman nilai ke database..." iconName="sync" />
+    </div>
+  {:else if form?.isSuccess || savedServerSuccess}
     <AlertMessage
       alertTone="success"
       alertTitle="Submisi Resmi Berhasil Disimpan"
       alertMessage="Nilai evaluasi Anda telah resmi tercatat ke dalam sistem pencatatan hasil belajar siswa EduKomputer."
+    />
+  {:else if form?.errorMessage}
+    <AlertMessage
+      alertTone="error"
+      alertTitle="Gagal Mencatat Nilai Kuis"
+      alertMessage={form.errorMessage}
     />
   {/if}
 
@@ -73,7 +91,7 @@
         <div>
           <h2 class="text-base font-bold text-content-heading">Identitas Siswa / Peserta Kursus</h2>
           <p class="text-xs text-content-muted">
-            Opsional: Masukkan nama untuk pencatatan di sertifikat hasil dan lembar evaluasi
+            Masukkan nama untuk pencatatan di sertifikat hasil dan lembar evaluasi
           </p>
         </div>
       </div>
@@ -81,26 +99,28 @@
       <div class="space-y-4">
         <div>
           <label for="fullNameInput" class="block text-xs font-bold text-content-heading mb-1.5">
-            Nama Lengkap Siswa / Peserta
+            Nama Lengkap Siswa / Peserta <span class="text-status-error">*</span>
           </label>
           <TextInput
             identifier="fullNameInput"
-            inputName="studentName"
+            inputName="studentFullName"
             bind:inputValue={studentFullName}
-            placeholderText="contoh: Muhammad Rizki"
+            placeholderText="contoh: Siti Aisyah"
+            isRequired={true}
           />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="studentIdInput" class="block text-xs font-bold text-content-heading mb-1.5">
-              ID Siswa / No. Peserta (NIM/NISN)
+              ID Siswa / No. Peserta (NIM/NISN) <span class="text-status-error">*</span>
             </label>
             <TextInput
               identifier="studentIdInput"
               inputName="studentIdentifier"
               bind:inputValue={studentIdentifier}
               placeholderText="contoh: 5302422001"
+              isRequired={true}
             />
           </div>
 
@@ -145,4 +165,41 @@
       onQuizFinished={handleQuizFinished}
     />
   {/if}
+
+  <!-- Form Submission Otomatis ke DB -->
+  <form
+    bind:this={hiddenSubmissionFormElement}
+    method="POST"
+    action="?/submitQuiz"
+    use:enhance={() => {
+      isSavingToServer = true;
+      return async ({ update, result }) => {
+        await update({ reset: false });
+        isSavingToServer = false;
+        if (result.type === 'success') {
+          savedServerSuccess = true;
+        }
+      };
+    }}
+    class="hidden"
+  >
+    <input
+      type="hidden"
+      name="studentFullName"
+      value={studentFullName.trim() || 'Peserta EduKomputer'}
+    />
+    <input
+      type="hidden"
+      name="studentIdentifier"
+      value={studentIdentifier.trim() || `TAMU-${Date.now().toString().slice(-6)}`}
+    />
+    <input
+      type="hidden"
+      name="classBatch"
+      value={classBatch.trim() || 'PTIK 2023 A'}
+    />
+    {#each Object.entries(recordedAnswers) as [questionId, optionId]}
+      <input type="hidden" name={`question_${questionId}`} value={optionId} />
+    {/each}
+  </form>
 </div>

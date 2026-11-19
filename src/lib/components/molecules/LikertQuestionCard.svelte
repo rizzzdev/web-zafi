@@ -2,46 +2,69 @@
   import LikertOptionButton from '../atoms/LikertOptionButton.svelte';
 
   interface LikertQuestionCardProperties {
-    readonly questionIndex: number;
+    readonly aspectCode?: string;
+    readonly questionIndex?: number;
     readonly aspectTitle: string;
-    readonly statementText: string;
+    readonly questionText?: string;
+    readonly statementText?: string;
     readonly inputName: string;
-    readonly selectedValue: number;
-    readonly onSelectValue: (selectedScore: number) => void;
+    selectedRatingValue?: number;
+    selectedValue?: number;
+    readonly onSelectValue?: (selectedScore: number) => void;
   }
 
-  const {
+  let {
+    aspectCode,
     questionIndex,
     aspectTitle,
+    questionText,
     statementText,
     inputName,
-    selectedValue,
+    selectedRatingValue = $bindable(5),
+    selectedValue = $bindable(5),
     onSelectValue,
   }: LikertQuestionCardProperties = $props();
 
   const scoreOptions = [1, 2, 3, 4, 5];
+
+  const currentScore = $derived(selectedRatingValue ?? selectedValue ?? 5);
+
+  function handleSelectScore(scoreOptionNumber: number): void {
+    selectedRatingValue = scoreOptionNumber;
+    selectedValue = scoreOptionNumber;
+    if (onSelectValue) {
+      onSelectValue(scoreOptionNumber);
+    }
+  }
 </script>
 
 <div class="card-base p-4 sm:p-5 mb-4 flex flex-col gap-3.5 transition-all">
   <div>
-    <span class="badge-accent text-xs">
-      {aspectTitle}
-    </span>
+    <div class="flex items-center gap-2">
+      {#if aspectCode}
+        <span class="badge-accent text-xs font-mono font-bold">{aspectCode}</span>
+      {:else if questionIndex}
+        <span class="badge-accent text-xs font-mono font-bold">#{questionIndex}</span>
+      {/if}
+      <span class="badge-accent text-xs">
+        {aspectTitle}
+      </span>
+    </div>
     <h4 class="text-sm sm:text-base font-semibold text-content-heading mt-2 leading-snug">
-      <span class="text-accent font-mono mr-1">#{questionIndex}</span> {statementText}
+      {questionText || statementText || ''}
     </h4>
   </div>
 
   <!-- Hidden input for standard HTML form submission -->
-  <input type="hidden" name={inputName} value={selectedValue} />
+  <input type="hidden" name={inputName} value={currentScore} />
 
   <!-- 5 touch-friendly buttons row -->
   <div class="grid grid-cols-5 gap-1.5 sm:gap-2.5 pt-1">
     {#each scoreOptions as scoreOptionNumber (scoreOptionNumber)}
       <LikertOptionButton
         valueNumber={scoreOptionNumber}
-        isSelected={selectedValue === scoreOptionNumber}
-        onclick={() => onSelectValue(scoreOptionNumber)}
+        isSelected={currentScore === scoreOptionNumber}
+        onclick={() => handleSelectScore(scoreOptionNumber)}
       />
     {/each}
   </div>

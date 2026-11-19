@@ -31,7 +31,8 @@ export const submitStudentFeedbackSchema = z.object({
   comments: z
     .string()
     .trim()
-    .min(5, 'Testimoni/saran minimal 5 karakter'),
+    .optional()
+    .default(''),
 });
 
 export type SubmitStudentFeedbackDto = z.infer<typeof submitStudentFeedbackSchema>;
@@ -71,7 +72,8 @@ export const updateFeedbackSchema = z.object({
   comments: z
     .string()
     .trim()
-    .min(5, 'Testimoni/saran minimal 5 karakter'),
+    .optional()
+    .default(''),
 });
 
 export type UpdateFeedbackDto = z.infer<typeof updateFeedbackSchema>;

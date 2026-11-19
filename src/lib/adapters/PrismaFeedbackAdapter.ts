@@ -61,7 +61,7 @@ export class PrismaFeedbackAdapter implements FeedbackPort {
 		const updatedFeedbackRecord = await prisma.studentFeedback.update({
 			where: { id: feedbackId },
 			data: {
-				studentName: inputDto.studentName,
+				studentName: inputDto.studentFullName,
 				studentIdentifier: inputDto.studentIdentifier,
 				classBatch: inputDto.classBatch ?? null,
 				ratingDesign: inputDto.ratingDesign,
